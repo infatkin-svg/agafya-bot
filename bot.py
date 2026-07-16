@@ -66,7 +66,7 @@ def send_welcome(message):
             f"🆔 Чат ID: {chat_id}"
         )
         # Бот шлет сообщение лично тебе
-        bot.send_message(MY_ID, notification, parse_mode="Markdown")
+        bot.send_message(MY_ID, notification, parse_mode="HTML")
         
     except Exception as e:
         print(f"Произошла ошибка при обработке команды старт: {e}")
