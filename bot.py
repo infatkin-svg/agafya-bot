@@ -2,7 +2,7 @@ import telebot
 import os
 
 # 1. Вставь сюда токен твоего бота от @BotFather
-BOT_TOKEN = "8839565108:AAE1EVKDw-OqybVV2_K7w83eOA-oNlFpafw"
+BOT_TOKEN = "8839565108:AAFdePAaAR786LZgsjooEgR9CB-9-BhBngM"
 
 # 2. Вставь сюда свой личный Telegram ID (цифры), чтобы получать уведомления.
 # Получить его можно за секунду в боте @userinfobot
