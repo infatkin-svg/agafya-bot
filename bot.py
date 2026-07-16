@@ -72,28 +72,33 @@ def send_welcome(message):
         print(f"Произошла ошибка при обработке команды старт: {e}")
 
 if __name__ == "__main__":
+    # 1. Сначала запускаем веб-сервер-"пустышку" для Render, чтобы он не ругался на порты
+    import http.server
+    import socketserver
+    import threading
+
+    def run_dummy_server():
+        class Handler(http.server.SimpleHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"OK")
+        
+        import os
+        port = int(os.environ.get("PORT", 10000))
+        try:
+            with socketserver.TCPServer(("", port), Handler) as httpd:
+                print(f"Сервер-пустышка запущен на порту {port}")
+                httpd.serve_forever()
+        except Exception as server_error:
+            print(f"Ошибка запуска сервера-пустышки: {server_error}")
+
+    # Запускаем пустышку в отдельном фоновом потоке
+    threading.Thread(target=run_dummy_server, daemon=True).start()
+
+    # 2. Теперь спокойно запускаем самого бота
     print("Исправленная Агафья запущена и ждет гостей...")
     try:
         bot.infinity_polling(timeout=10, long_polling_timeout=5)
     except Exception as e:
         print(f"Сбой сети Телеграм, ошибка: {e}")
-        import http.server
-import socketserver
-import threading
-
-def run_dummy_server():
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b"OK")
-    
-    # Render автоматически передает номер порта в переменную окружения PORT
-    import os
-    port = int(os.environ.get("PORT", 10000))
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        httpd.serve_forever()
-
-# Запускаем пустышку в отдельном потоке, чтобы она не мешала боту
-threading.Thread(target=run_dummy_server, daemon=True).start()
-    
