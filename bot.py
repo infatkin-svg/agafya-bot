@@ -12,7 +12,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 # Путь к твоему звуковому файлу оберега. 
 # Положи файл со звуком костра в ту же папку, где лежит bot.py, и назови его "obereg.mp3"
-AUDIO_PATH = "obereg.mp3"
+AUDIO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "obereg.mp3")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
