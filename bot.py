@@ -23,6 +23,9 @@ PDF_PATH = os.path.join(
 PDF_CHAPTER_2_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "glava2.pdf"
 )
+PDF_CHAPTER_3_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "glava3.pdf"
+)
 
 
 # --- КОМАНДА /START ---
@@ -40,7 +43,7 @@ def send_welcome(message):
         "Выберите ниже, с чего хотите начать:"
     )
 
-    # Три кнопки
+    # Четыре кнопки
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     btn_obereg = types.InlineKeyboardButton(
         text="🎧 Получить Звуковой Оберег", callback_data="get_obereg"
@@ -51,7 +54,10 @@ def send_welcome(message):
     btn_chapter_2 = types.InlineKeyboardButton(
         text="📖 Читать 2-ю главу (PDF)", callback_data="get_chapter_2"
     )
-    keyboard.add(btn_obereg, btn_chapter_1, btn_chapter_2)
+    btn_chapter_3 = types.InlineKeyboardButton(
+        text="📖 Читать 3-ю главу (PDF)", callback_data="get_chapter_3"
+    )
+    keyboard.add(btn_obereg, btn_chapter_1, btn_chapter_2, btn_chapter_3)
 
     try:
         # Приветствие с кнопками
@@ -169,6 +175,31 @@ def send_chapter_2(call):
         print(f"Ошибка при отправке PDF (Глава 2): {e}")
 
 
+# --- НАЖАТИЕ НА "3 ГЛАВА" ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_3")
+def send_chapter_3(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+
+        if os.path.exists(PDF_CHAPTER_3_PATH):
+            with open(PDF_CHAPTER_3_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="📖 Третья глава «Домашней тетради» — про свежий воздух и легкий сон. Приятного чтения!",
+                )
+        else:
+            bot.send_message(
+                chat_id,
+                "⚠️ Ой, файл glava3.pdf не найден на сервере! Проверь, загружен ли"
+                " файл в GitHub.",
+            )
+
+    except Exception as e:
+        print(f"Ошибка при отправке PDF (Глава 3): {e}")
+
+
 # --- ВЕБ-СЕРВЕР ДЛЯ RENDER ---
 def run_dummy_server():
     class Handler(http.server.SimpleHTTPRequestHandler):
@@ -180,16 +211,4 @@ def run_dummy_server():
 
     port = int(os.environ.get("PORT", 10000))
     try:
-        with socketserver.TCPServer(("", port), Handler) as httpd:
-            httpd.serve_forever()
-    except Exception as server_error:
-        print(f"Ошибка сервера-пустышки: {server_error}")
-
-
-if __name__ == "__main__":
-    threading.Thread(target=run_dummy_server, daemon=True).start()
-    print("Агафья запущенa и ждет гостей...")
-    try:
-        bot.infinity_polling(timeout=10, long_polling_timeout=5)
-    except Exception as e:
-        print(f"Сбой сети Телеграм: {e}")
+        with socketserver.
