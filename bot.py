@@ -5,7 +5,7 @@ import threading
 import telebot
 from telebot import types
 
-# 1. ВСТАВЬ СЮДА СВОЙ ТОКЕН В КАВЫЧКАХ
+# 1. ТОКЕН БОТА
 BOT_TOKEN = "8839565108:AAFdePAaAR786LZgsjooEgR9CB-9-BhBngM"
 
 # 2. Твой Telegram ID
@@ -203,7 +203,6 @@ def send_chapter_3(call):
 # --- ВЕБ-СЕРВЕР ДЛЯ RENDER ---
 def run_dummy_server():
     class Handler(http.server.SimpleHTTPRequestHandler):
-
         def do_GET(self):
             self.send_response(200)
             self.end_headers()
@@ -211,4 +210,16 @@ def run_dummy_server():
 
     port = int(os.environ.get("PORT", 10000))
     try:
-        with socketserver.
+        with socketserver.TCPServer(("", port), Handler) as httpd:
+            httpd.serve_forever()
+    except Exception as server_error:
+        print(f"Ошибка сервера-пустышки: {server_error}")
+
+
+if __name__ == "__main__":
+    threading.Thread(target=run_dummy_server, daemon=True).start()
+    print("Агафья запущенa и ждет гостей...")
+    try:
+        bot.infinity_polling(timeout=10, long_polling_timeout=5)
+    except Exception as e:
+        print(f"Сбой сети Телеграм: {e}")
