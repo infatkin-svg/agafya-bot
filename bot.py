@@ -13,7 +13,7 @@ MY_ID = 716432345
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Пути к файлам (они должны лежать в папке с bot.py)
+# Пути к файлам
 AUDIO_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "obereg.mp3"
 )
@@ -25,6 +25,9 @@ PDF_CHAPTER_2_PATH = os.path.join(
 )
 PDF_CHAPTER_3_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "glava3.pdf"
+)
+PDF_CHAPTER_4_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "glava4.pdf"
 )
 
 
@@ -43,7 +46,7 @@ def send_welcome(message):
         "Выберите ниже, с чего хотите начать:"
     )
 
-    # Четыре кнопки
+    # Кнопки
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     btn_obereg = types.InlineKeyboardButton(
         text="🎧 Получить Звуковой Оберег", callback_data="get_obereg"
@@ -57,10 +60,18 @@ def send_welcome(message):
     btn_chapter_3 = types.InlineKeyboardButton(
         text="📖 Читать 3-ю главу (PDF)", callback_data="get_chapter_3"
     )
-    keyboard.add(btn_obereg, btn_chapter_1, btn_chapter_2, btn_chapter_3)
+    btn_chapter_4 = types.InlineKeyboardButton(
+        text="📖 Читать 4-ю главу (PDF)", callback_data="get_chapter_4"
+    )
+    keyboard.add(
+        btn_obereg,
+        btn_chapter_1,
+        btn_chapter_2,
+        btn_chapter_3,
+        btn_chapter_4,
+    )
 
     try:
-        # Приветствие с кнопками
         bot.send_message(chat_id, welcome_text, reply_markup=keyboard)
 
         # Запись в users.txt
@@ -74,7 +85,7 @@ def send_welcome(message):
         except Exception as fs_error:
             print(f"Ошибка записи в файл: {fs_error}")
 
-        # Уведомление тебе
+        # Уведомление
         user_link = f"@{username}" if username else f"ID: {chat_id}"
         notification = (
             "🔔 <b>Новый гость в избушке!</b>\n"
@@ -88,13 +99,12 @@ def send_welcome(message):
         print(f"Ошибка при старте: {e}")
 
 
-# --- НАЖАТИЕ НА "ОБЕРЕГ" ---
+# --- ОБЕРЕГ ---
 @bot.callback_query_handler(func=lambda call: call.data == "get_obereg")
 def send_obereg(call):
     chat_id = call.message.chat.id
     try:
         bot.answer_callback_query(call.id)
-
         obereg_text = (
             "Ниже прикрепила ваш Звуковой Оберег \"Сумерки в избушке\". Это 7 минут"
             " мягкого шуршания таежного костра, скрипа половиц и сибирского ветра."
@@ -102,7 +112,6 @@ def send_obereg(call):
             " этого дня останутся за порогом.\n\n"
             "Доброй и мирной вам ночи! Спасайтесь покоем. ✨"
         )
-
         bot.send_message(chat_id, obereg_text)
 
         if os.path.exists(AUDIO_PATH):
@@ -115,92 +124,88 @@ def send_obereg(call):
                     performer="Агафья Травница",
                 )
         else:
-            bot.send_message(
-                chat_id,
-                "⚠️ Ой, звуковой файл obereg.mp3 не найден на сервере! Проверь,"
-                " загружен ли он.",
-            )
-
+            bot.send_message(chat_id, "⚠️ Ой, звуковой файл obereg.mp3 не найден!")
     except Exception as e:
-        print(f"Ошибка при отправке оберега: {e}")
+        print(f"Ошибка оберега: {e}")
 
 
-# --- НАЖАТИЕ НА "1 ГЛАВА" ---
+# --- 1 ГЛАВА ---
 @bot.callback_query_handler(func=lambda call: call.data == "get_chapter_1")
 def send_chapter_1(call):
     chat_id = call.message.chat.id
     try:
         bot.answer_callback_query(call.id)
-
         if os.path.exists(PDF_PATH):
             with open(PDF_PATH, "rb") as doc:
                 bot.send_document(
                     chat_id,
                     doc,
-                    caption="📖 Первая глава от Агафьи. Приятного и душевного чтения!",
+                    caption="📖 Первая глава от Агафьи. Приятного чтения!",
                 )
         else:
-            bot.send_message(
-                chat_id,
-                "⚠️ Ой, файл glava1.pdf не найден на сервере! Проверь, загружен ли"
-                " файл в GitHub.",
-            )
-
+            bot.send_message(chat_id, "⚠️ Файл glava1.pdf не найден!")
     except Exception as e:
-        print(f"Ошибка при отправке PDF (Глава 1): {e}")
+        print(f"Ошибка (Глава 1): {e}")
 
 
-# --- НАЖАТИЕ НА "2 ГЛАВА" ---
+# --- 2 ГЛАВА ---
 @bot.callback_query_handler(func=lambda call: call.data == "get_chapter_2")
 def send_chapter_2(call):
     chat_id = call.message.chat.id
     try:
         bot.answer_callback_query(call.id)
-
         if os.path.exists(PDF_CHAPTER_2_PATH):
             with open(PDF_CHAPTER_2_PATH, "rb") as doc:
                 bot.send_document(
                     chat_id,
                     doc,
-                    caption="📖 Вторая глава «Домашней тетради». Забирайте в свою копилочку уютных мудростей!",
+                    caption="📖 Вторая глава «Домашней тетради».",
                 )
         else:
-            bot.send_message(
-                chat_id,
-                "⚠️ Ой, файл glava2.pdf не найден на сервере! Проверь, загружен ли"
-                " файл в GitHub.",
-            )
-
+            bot.send_message(chat_id, "⚠️ Файл glava2.pdf не найден!")
     except Exception as e:
-        print(f"Ошибка при отправке PDF (Глава 2): {e}")
+        print(f"Ошибка (Глава 2): {e}")
 
 
-# --- НАЖАТИЕ НА "3 ГЛАВА" ---
+# --- 3 ГЛАВА ---
 @bot.callback_query_handler(func=lambda call: call.data == "get_chapter_3")
 def send_chapter_3(call):
     chat_id = call.message.chat.id
     try:
         bot.answer_callback_query(call.id)
-
         if os.path.exists(PDF_CHAPTER_3_PATH):
             with open(PDF_CHAPTER_3_PATH, "rb") as doc:
                 bot.send_document(
                     chat_id,
                     doc,
-                    caption="📖 Третья глава «Домашней тетради» — про свежий воздух и легкий сон. Приятного чтения!",
+                    caption="📖 Третья глава «Домашней тетради».",
                 )
         else:
-            bot.send_message(
-                chat_id,
-                "⚠️ Ой, файл glava3.pdf не найден на сервере! Проверь, загружен ли"
-                " файл в GitHub.",
-            )
-
+            bot.send_message(chat_id, "⚠️ Файл glava3.pdf не найден!")
     except Exception as e:
-        print(f"Ошибка при отправке PDF (Глава 3): {e}")
+        print(f"Ошибка (Глава 3): {e}")
 
 
-# --- ВЕБ-СЕРВЕР ДЛЯ RENDER ---
+# --- 4 ГЛАВА ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_4")
+def send_chapter_4(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+        if os.path.exists(PDF_CHAPTER_4_PATH):
+            with open(PDF_CHAPTER_4_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="📖 Четвертая глава «Домашней тетради» — про чистый стол и заветы горницы. Приятного чтения!",
+                )
+        else:
+            bot.send_message(chat_id, "⚠️ Файл glava4.pdf не найден!")
+    except Exception as e:
+        print(f"Ошибка (Глава 4): {e}")
+
+
+# --- ВЕБ-СЕРВЕР ---
 def run_dummy_server():
     class Handler(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
@@ -213,13 +218,13 @@ def run_dummy_server():
         with socketserver.TCPServer(("", port), Handler) as httpd:
             httpd.serve_forever()
     except Exception as server_error:
-        print(f"Ошибка сервера-пустышки: {server_error}")
+        print(f"Ошибка сервера: {server_error}")
 
 
 if __name__ == "__main__":
     threading.Thread(target=run_dummy_server, daemon=True).start()
-    print("Агафья запущенa и ждет гостей...")
+    print("Агафья запущена...")
     try:
         bot.infinity_polling(timeout=10, long_polling_timeout=5)
     except Exception as e:
-        print(f"Сбой сети Телеграм: {e}")
+        print(f"Сбой сети: {e}")
