@@ -13,7 +13,7 @@ MY_ID = 716432345
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Пути к файлам
+# Пути к файлам (они должны лежать в папке с bot.py)
 AUDIO_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "obereg.mp3"
 )
@@ -28,6 +28,9 @@ PDF_CHAPTER_3_PATH = os.path.join(
 )
 PDF_CHAPTER_4_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "glava4.pdf"
+)
+PDF_CHAPTER_5_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "glava5.pdf"
 )
 
 
@@ -46,7 +49,7 @@ def send_welcome(message):
         "Выберите ниже, с чего хотите начать:"
     )
 
-    # Кнопки
+    # Пять кнопок
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     btn_obereg = types.InlineKeyboardButton(
         text="🎧 Получить Звуковой Оберег", callback_data="get_obereg"
@@ -63,12 +66,16 @@ def send_welcome(message):
     btn_chapter_4 = types.InlineKeyboardButton(
         text="📖 Читать 4-ю главу (PDF)", callback_data="get_chapter_4"
     )
+    btn_chapter_5 = types.InlineKeyboardButton(
+        text="📖 Читать 5-ю главу (PDF)", callback_data="get_chapter_5"
+    )
     keyboard.add(
         btn_obereg,
         btn_chapter_1,
         btn_chapter_2,
         btn_chapter_3,
         btn_chapter_4,
+        btn_chapter_5,
     )
 
     try:
@@ -197,12 +204,31 @@ def send_chapter_4(call):
                 bot.send_document(
                     chat_id,
                     doc,
-                    caption="📖 Четвертая глава «Домашней тетради» — про чистый стол и заветы горницы. Приятного чтения!",
+                    caption="📖 Четвертая глава «Домашней тетради».",
                 )
         else:
             bot.send_message(chat_id, "⚠️ Файл glava4.pdf не найден!")
     except Exception as e:
         print(f"Ошибка (Глава 4): {e}")
+
+
+# --- 5 ГЛАВА ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_5")
+def send_chapter_5(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+        if os.path.exists(PDF_CHAPTER_5_PATH):
+            with open(PDF_CHAPTER_5_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома. Приятного чтения!",
+                )
+        else:
+            bot.send_message(chat_id, "⚠️ Файл glava5.pdf не найден!")
+    except Exception as e:
+        print(f"Ошибка (Глава 5): {e}")
 
 
 # --- ВЕБ-СЕРВЕР ---
