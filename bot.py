@@ -32,6 +32,9 @@ PDF_CHAPTER_4_PATH = os.path.join(
 PDF_CHAPTER_5_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "glava5.pdf"
 )
+PDF_CHAPTER_6_1_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "glava6_1.pdf"
+)
 
 
 # --- КОМАНДА /START ---
@@ -45,11 +48,11 @@ def send_welcome(message):
     welcome_text = (
         f"Здравствуйте, родные! Рада, что вы заглянули в мою избушку. 🌿\n\n"
         "Проходите, располагайтесь у очага. Я приготовила для вас кое-что особое"
-        " для уюта и защиты дома.\n\n"
+        " для уюта, здоровья и защиты дома.\n\n"
         "Выберите ниже, с чего хотите начать:"
     )
 
-    # Пять кнопок
+    # Кнопки меню
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     btn_obereg = types.InlineKeyboardButton(
         text="🎧 Получить Звуковой Оберег", callback_data="get_obereg"
@@ -69,6 +72,10 @@ def send_welcome(message):
     btn_chapter_5 = types.InlineKeyboardButton(
         text="📖 Читать 5-ю главу (PDF)", callback_data="get_chapter_5"
     )
+    btn_chapter_6_1 = types.InlineKeyboardButton(
+        text="🌿 Глава 6/1: Отёки и лимфа (PDF)", callback_data="get_chapter_6_1"
+    )
+    
     keyboard.add(
         btn_obereg,
         btn_chapter_1,
@@ -76,6 +83,7 @@ def send_welcome(message):
         btn_chapter_3,
         btn_chapter_4,
         btn_chapter_5,
+        btn_chapter_6_1,
     )
 
     try:
@@ -92,7 +100,7 @@ def send_welcome(message):
         except Exception as fs_error:
             print(f"Ошибка записи в файл: {fs_error}")
 
-        # Уведомление
+        # Уведомление владельцу
         user_link = f"@{username}" if username else f"ID: {chat_id}"
         notification = (
             "🔔 <b>Новый гость в избушке!</b>\n"
@@ -223,7 +231,7 @@ def send_chapter_5(call):
                 bot.send_document(
                     chat_id,
                     doc,
-                    caption="📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома. Приятного чтения!",
+                    caption="📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома.",
                 )
         else:
             bot.send_message(chat_id, "⚠️ Файл glava5.pdf не найден!")
@@ -231,7 +239,26 @@ def send_chapter_5(call):
         print(f"Ошибка (Глава 5): {e}")
 
 
-# --- ВЕБ-СЕРВЕР ---
+# --- ГЛАВА 6/1 ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_1")
+def send_chapter_6_1(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+        if os.path.exists(PDF_CHAPTER_6_1_PATH):
+            with open(PDF_CHAPTER_6_1_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="🌿 Глава № 6/1 «Свод таёжных правил: Отёк и мешки под глазами — не возраст, а застой». Приятного и полезного чтения!",
+                )
+        else:
+            bot.send_message(chat_id, "⚠️ Файл glava6_1.pdf не найден!")
+    except Exception as e:
+        print(f"Ошибка (Глава 6/1): {e}")
+
+
+# --- ВЕБ-СЕРВЕР ДЛЯ РЕНДЕРА ИЛИ ХОСТИНГА ---
 def run_dummy_server():
     class Handler(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
