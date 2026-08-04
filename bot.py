@@ -13,7 +13,7 @@ MY_ID = 716432345
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Пути к файлам (они должны лежать в папке с bot.py)
+# Пути к файлам (они должны лежать в одной папке с bot.py)
 AUDIO_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "obereg.mp3"
 )
@@ -34,6 +34,9 @@ PDF_CHAPTER_5_PATH = os.path.join(
 )
 PDF_CHAPTER_6_1_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "glava6_1.pdf"
+)
+PDF_CHAPTER_6_2_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "glava6_2.pdf"
 )
 
 
@@ -75,7 +78,10 @@ def send_welcome(message):
     btn_chapter_6_1 = types.InlineKeyboardButton(
         text="🌿 Глава 6/1: Отёки и лимфа (PDF)", callback_data="get_chapter_6_1"
     )
-    
+    btn_chapter_6_2 = types.InlineKeyboardButton(
+        text="🌿 Глава 6/2: Вздутый живот (PDF)", callback_data="get_chapter_6_2"
+    )
+
     keyboard.add(
         btn_obereg,
         btn_chapter_1,
@@ -84,6 +90,7 @@ def send_welcome(message):
         btn_chapter_4,
         btn_chapter_5,
         btn_chapter_6_1,
+        btn_chapter_6_2,
     )
 
     try:
@@ -256,6 +263,25 @@ def send_chapter_6_1(call):
             bot.send_message(chat_id, "⚠️ Файл glava6_1.pdf не найден!")
     except Exception as e:
         print(f"Ошибка (Глава 6/1): {e}")
+
+
+# --- ГЛАВА 6/2 ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_2")
+def send_chapter_6_2(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+        if os.path.exists(PDF_CHAPTER_6_2_PATH):
+            with open(PDF_CHAPTER_6_2_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="🌿 Глава № 6/2 «Свод таёжных правил: Вздутый живот — не жир, а брожение в кишечнике». Полезного чтения!",
+                )
+        else:
+            bot.send_message(chat_id, "⚠️ Файл glava6_2.pdf не найден!")
+    except Exception as e:
+        print(f"Ошибка (Глава 6/2): {e}")
 
 
 # --- ВЕБ-СЕРВЕР ДЛЯ РЕНДЕРА ИЛИ ХОСТИНГА ---
