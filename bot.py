@@ -38,6 +38,9 @@ PDF_CHAPTER_6_1_PATH = os.path.join(
 PDF_CHAPTER_6_2_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "glava6_2.pdf"
 )
+PDF_CHAPTER_6_3_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "glava6_3.pdf"
+)
 
 
 # --- КОМАНДА /START ---
@@ -81,6 +84,9 @@ def send_welcome(message):
     btn_chapter_6_2 = types.InlineKeyboardButton(
         text="🌿 Глава 6/2: Вздутый живот (PDF)", callback_data="get_chapter_6_2"
     )
+    btn_chapter_6_3 = types.InlineKeyboardButton(
+        text="🌿 Глава 6/3: Суставы и желчь (PDF)", callback_data="get_chapter_6_3"
+    )
 
     keyboard.add(
         btn_obereg,
@@ -91,6 +97,7 @@ def send_welcome(message):
         btn_chapter_5,
         btn_chapter_6_1,
         btn_chapter_6_2,
+        btn_chapter_6_3,
     )
 
     try:
@@ -282,6 +289,25 @@ def send_chapter_6_2(call):
             bot.send_message(chat_id, "⚠️ Файл glava6_2.pdf не найден!")
     except Exception as e:
         print(f"Ошибка (Глава 6/2): {e}")
+
+
+# --- ГЛАВА 6/3 ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_3")
+def send_chapter_6_3(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+        if os.path.exists(PDF_CHAPTER_6_3_PATH):
+            with open(PDF_CHAPTER_6_3_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="🌿 Глава № 6/3 «Свод таёжных правил: Ломота в суставах и чистка печени». Полезного чтения!",
+                )
+        else:
+            bot.send_message(chat_id, "⚠️ Файл glava6_3.pdf не найден!")
+    except Exception as e:
+        print(f"Ошибка (Глава 6/3): {e}")
 
 
 # --- ВЕБ-СЕРВЕР ДЛЯ РЕНДЕРА ИЛИ ХОСТИНГА ---
