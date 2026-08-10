@@ -25,6 +25,7 @@ PDF_CHAPTER_6_2_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 PDF_CHAPTER_6_3_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glava6_3.pdf")
 PDF_CHAPTER_6_4_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glava6_4.pdf")
 PDF_CHAPTER_7_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glava7.pdf")
+PDF_CHAPTER_8_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "glava8.pdf")
 
 
 # --- КОМАНДА /START ---
@@ -55,6 +56,7 @@ def send_welcome(message):
     btn_chapter_6_3 = types.InlineKeyboardButton(text="🌿 Глава 6/3: Суставы и желчь (PDF)", callback_data="get_chapter_6_3")
     btn_chapter_6_4 = types.InlineKeyboardButton(text="🌿 Глава 6/4: Полный разгон лимфы (PDF)", callback_data="get_chapter_6_4")
     btn_chapter_7 = types.InlineKeyboardButton(text="🌿 Глава 7: Таёжный щит для спины и грыжи (PDF)", callback_data="get_chapter_7")
+    btn_chapter_8 = types.InlineKeyboardButton(text="🌸 Глава 8: Женский сбор от приливов и жара (PDF)", callback_data="get_chapter_8")
 
     keyboard.add(
         btn_obereg,
@@ -68,6 +70,7 @@ def send_welcome(message):
         btn_chapter_6_3,
         btn_chapter_6_4,
         btn_chapter_7,
+        btn_chapter_8,
     )
 
     try:
@@ -280,6 +283,25 @@ def send_chapter_7(call):
             bot.send_message(chat_id, "⚠️ Файл glava7.pdf не найден!")
     except Exception as e:
         print(f"Ошибка (Глава 7): {e}")
+
+
+# --- ГЛАВА 8 ---
+@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_8")
+def send_chapter_8(call):
+    chat_id = call.message.chat.id
+    try:
+        bot.answer_callback_query(call.id)
+        if os.path.exists(PDF_CHAPTER_8_PATH):
+            with open(PDF_CHAPTER_8_PATH, "rb") as doc:
+                bot.send_document(
+                    chat_id,
+                    doc,
+                    caption="🌸 Глава № 8 «Женский таёжный покров: Как потушить приливы, жар и вернуть спокойный сон». Полезного чтения, Родная!",
+                )
+        else:
+            bot.send_message(chat_id, "⚠️ Файл glava8.pdf не найден!")
+    except Exception as e:
+        print(f"Ошибка (Глава 8): {e}")
 
 
 # --- ВЕБ-СЕРВЕР ДЛЯ РЕНДЕРА ИЛИ ХОСТИНГА ---
