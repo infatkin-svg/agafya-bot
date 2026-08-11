@@ -152,4 +152,72 @@ def handle_callbacks(call):
 
         if data == "get_obereg":
             obereg_text = (
-                "Ниже прикрепила ваш Звуковой Оберег
+                "Ниже прикрепила ваш Звуковой Оберег \"Сумерки в избушке\". Это 7 минут "
+                "мягкого шуршания таежного костра, скрипа половиц и сибирского ветра. "
+                "Включайте его перед сном, надевайте наушники и пускай все тревоги "
+                "этого дня останутся за порогом.\n\n"
+                "Доброй и мирной вам ночи! Спасайтесь покоем. ✨"
+            )
+            bot.send_message(chat_id, obereg_text)
+            if os.path.exists(AUDIO_PATH):
+                with open(AUDIO_PATH, "rb") as audio:
+                    bot.send_audio(
+                        chat_id,
+                        audio,
+                        caption="✨ Твой Звуковой Оберег от Агафьи",
+                        title="Сумерки в избушке",
+                        performer="Агафья Травница",
+                    )
+            else:
+                bot.send_message(chat_id, "⚠️ Ой, звуковой файл obereg.mp3 не найден!")
+
+        elif data == "get_chapter_1":
+            safe_send_doc(chat_id, PDF_PATH, "📖 Первая глава от Агафьи. Приятного чтения!", "⚠️ Файл glava1.pdf не найден!")
+        elif data == "get_chapter_2":
+            safe_send_doc(chat_id, PDF_CHAPTER_2_PATH, "📖 Вторая глава «Домашней тетради».", "⚠️ Файл glava2.pdf не найден!")
+        elif data == "get_chapter_3":
+            safe_send_doc(chat_id, PDF_CHAPTER_3_PATH, "📖 Третья глава «Домашней тетради».", "⚠️ Файл glava3.pdf не найден!")
+        elif data == "get_chapter_4":
+            safe_send_doc(chat_id, PDF_CHAPTER_4_PATH, "📖 Четвертая глава «Домашней тетради».", "⚠️ Файл glava4.pdf не найден!")
+        elif data == "get_chapter_5":
+            safe_send_doc(chat_id, PDF_CHAPTER_5_PATH, "📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома.", "⚠️ Файл glava5.pdf не найден!")
+        elif data == "get_chapter_6_1":
+            safe_send_doc(chat_id, PDF_CHAPTER_6_1_PATH, "🌿 Глава № 6/1 «Свод таёжных правил: Отёк и мешки под глазами».", "⚠️ Файл glava6_1.pdf не найден!")
+        elif data == "get_chapter_6_2":
+            safe_send_doc(chat_id, PDF_CHAPTER_6_2_PATH, "🌿 Глава № 6/2 «Свод таёжных правил: Вздутый живот — не жир».", "⚠️ Файл glava6_2.pdf не найден!")
+        elif data == "get_chapter_6_3":
+            safe_send_doc(chat_id, PDF_CHAPTER_6_3_PATH, "🌿 Глава № 6/3 «Свод таёжных правил: Ломота в суставах и чистка печени».", "⚠️ Файл glava6_3.pdf не найден!")
+        elif data == "get_chapter_6_4":
+            safe_send_doc(chat_id, PDF_CHAPTER_6_4_PATH, "🌿 Глава № 6/4 «Свод таёжных правил: Разгон лимфы и лёгкость тела».", "⚠️ Файл glava6_4.pdf не найден!")
+        elif data == "get_chapter_7":
+            safe_send_doc(chat_id, PDF_CHAPTER_7_PATH, "🌿 Глава № 7 «Таёжный щит для позвоночника».", "⚠️ Файл glava7.pdf не найден!")
+        elif data == "get_chapter_8":
+            safe_send_doc(chat_id, PDF_CHAPTER_8_PATH, "🌸 Глава № 8 «Женский таёжный покров: Как потушить приливы и жар».", "⚠️ Файл glava8.pdf не найден!")
+
+    except Exception as e:
+        print(f"Ошибка колбэка: {e}")
+
+
+# --- ВЕБ-СЕРВЕР ДЛЯ РЕНДЕРА ---
+def run_dummy_server():
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"OK")
+
+    port = int(os.environ.get("PORT", 10000))
+    try:
+        with socketserver.TCPServer(("", port), Handler) as httpd:
+            httpd.serve_forever()
+    except Exception as server_error:
+        print(f"Ошибка сервера: {server_error}")
+
+
+if __name__ == "__main__":
+    threading.Thread(target=run_dummy_server, daemon=True).start()
+    print("Агафья запущена...")
+    try:
+        bot.infinity_polling(timeout=10, long_polling_timeout=5)
+    except Exception as e:
+        print(f"Сбой сети: {e}")
