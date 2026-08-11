@@ -25,6 +25,7 @@ PDF_CHAPTER_6_3_PATH = os.path.join(BASE_DIR, "glava6_3.pdf")
 PDF_CHAPTER_6_4_PATH = os.path.join(BASE_DIR, "glava6_4.pdf")
 PDF_CHAPTER_7_PATH = os.path.join(BASE_DIR, "glava7.pdf")
 PDF_CHAPTER_8_PATH = os.path.join(BASE_DIR, "glava8.pdf")
+PDF_CHAPTER_9_PATH = os.path.join(BASE_DIR, "glava9.pdf")
 
 
 # --- Вспомогательная функция отправки файлов ---
@@ -66,6 +67,7 @@ def send_welcome(message):
         types.InlineKeyboardButton(text="🌿 Глава 6/4: Полный разгон лимфы (PDF)", callback_data="get_chapter_6_4"),
         types.InlineKeyboardButton(text="🌿 Глава 7: Таёжный щит для спины и грыжи (PDF)", callback_data="get_chapter_7"),
         types.InlineKeyboardButton(text="🌸 Глава 8: Женский сбор от приливов и жара (PDF)", callback_data="get_chapter_8"),
+        types.InlineKeyboardButton(text="🌿 Глава 9: Корень солодки от тёмных пятнышек (PDF)", callback_data="get_chapter_9"),
     )
 
     try:
@@ -193,6 +195,8 @@ def handle_callbacks(call):
             safe_send_doc(chat_id, PDF_CHAPTER_7_PATH, "🌿 Глава № 7 «Таёжный щит для позвоночника».", "⚠️ Файл glava7.pdf не найден!")
         elif data == "get_chapter_8":
             safe_send_doc(chat_id, PDF_CHAPTER_8_PATH, "🌸 Глава № 8 «Женский таёжный покров: Как потушить приливы и жар».", "⚠️ Файл glava8.pdf не найден!")
+        elif data == "get_chapter_9":
+            safe_send_doc(chat_id, PDF_CHAPTER_9_PATH, "🌿 Глава № 9 «Следы солнца: старый рецепт с корнем солодки от тёмных пятнышек».", "⚠️ Файл glava9.pdf не найден!")
 
     except Exception as e:
         print(f"Ошибка колбэка: {e}")
