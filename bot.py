@@ -40,7 +40,8 @@ def send_welcome(message):
         f"Здравствуйте, родные! Рада, что вы заглянули в мою избушку. 🌿\n\n"
         "Проходите, располагайтесь у очага. Я приготовила для вас кое-что особое"
         " для уюта, здоровья и защиты дома.\n\n"
-        "Выберите ниже, с чего хотите начать:"
+        "Выберите ниже, с чего хотите начать, или просто **напишите свой вопрос прямо сюда в чат** "
+        "— я обязательно прочту и отвечу вам! 🤎"
     )
 
     # Кнопки меню
@@ -74,7 +75,7 @@ def send_welcome(message):
     )
 
     try:
-        bot.send_message(chat_id, welcome_text, reply_markup=keyboard)
+        bot.send_message(chat_id, welcome_text, reply_markup=keyboard, parse_mode="Markdown")
 
         # Запись в users.txt
         try:
@@ -99,6 +100,61 @@ def send_welcome(message):
 
     except Exception as e:
         print(f"Ошибка при старте: {e}")
+
+
+# --- ОБРАБОТКА ВХОДЯЩИХ ВОПРОСОВ И ОТВЕТОВ (ОБРАТНАЯ СВЯЗЬ) ---
+
+# 1. Ответ админа пользователю (через Функция Reply / Ответить в Telegram)
+@bot.message_handler(func=lambda message: message.chat.id == MY_ID and message.reply_to_message is not None)
+def handle_admin_reply(message):
+    try:
+        # Извлекаем ID пользователя из текста пересланной карточки
+        reply_text = message.reply_to_message.text or message.reply_to_message.caption or ""
+        
+        target_chat_id = None
+        for line in reply_text.split("\n"):
+            if "🆔 ID:" in line:
+                target_chat_id = line.split("🆔 ID:")[1].strip()
+                break
+
+        if target_chat_id:
+            bot.copy_message(chat_id=target_chat_id, from_chat_id=MY_ID, message_id=message.message_id)
+            bot.send_message(MY_ID, "✅ Ответ успешно отправлен пользователю от имени Агафьи!")
+        else:
+            bot.send_message(MY_ID, "⚠️ Не удалось определить ID пользователя. Отвечайте строго на карточку с вопросом.")
+    except Exception as e:
+        bot.send_message(MY_ID, f"❌ Ошибка отправки ответа: {e}")
+
+
+# 2. Вопросы от пользователей (пересылка админу)
+@bot.message_handler(func=lambda message: message.chat.id != MY_ID)
+def forward_user_question(message):
+    chat_id = message.chat.id
+    username = message.from_user.username
+    first_name = message.from_user.first_name
+    last_name = message.from_user.last_name or ""
+    user_link = f"@{username}" if username else f"без юзернейма"
+
+    info_card = (
+        "💬 <b>Новое сообщение от гостя!</b>\n"
+        f"👤 Имя: {first_name} {last_name} ({user_link})\n"
+        f"🆔 ID: {chat_id}\n\n"
+        "<i>Нажмите «Ответить» (Reply) на это сообщение, чтобы написать человеку!</i>"
+    )
+
+    try:
+        # Сначала отправляем админу инфо-карточку
+        bot.send_message(MY_ID, info_card, parse_mode="HTML")
+        # Затем дублируем само сообщение пользователя (текст, голосовое, фото и т.д.)
+        bot.copy_message(chat_id=MY_ID, from_chat_id=chat_id, message_id=message.message_id)
+
+        # Подтверждение пользователю
+        bot.send_message(
+            chat_id,
+            "Благодарю за весточку, родная! 🌿 Я приняла твой вопрос и скоро обязательно отвечу."
+        )
+    except Exception as e:
+        print(f"Ошибка пересылки вопроса: {e}")
 
 
 # --- ОБЕРЕГ ---
@@ -261,69 +317,4 @@ def send_chapter_6_4(call):
             with open(PDF_CHAPTER_6_4_PATH, "rb") as doc:
                 bot.send_document(chat_id, doc, caption="🌿 Глава № 6/4 «Свод таёжных правил: Разгон лимфы и лёгкость тела». Полезного чтения!")
         else:
-            bot.send_message(chat_id, "⚠️ Файл glava6_4.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 6/4): {e}")
-
-
-# --- ГЛАВА 7 ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_7")
-def send_chapter_7(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_7_PATH):
-            with open(PDF_CHAPTER_7_PATH, "rb") as doc:
-                bot.send_document(
-                    chat_id,
-                    doc,
-                    caption="🌿 Глава № 7 «Таёжный щит для позвоночника: Как размочить усохший диск и снять защемление без уколов». Приятного и полезного чтения!",
-                )
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava7.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 7): {e}")
-
-
-# --- ГЛАВА 8 ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_8")
-def send_chapter_8(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_8_PATH):
-            with open(PDF_CHAPTER_8_PATH, "rb") as doc:
-                bot.send_document(
-                    chat_id,
-                    doc,
-                    caption="🌸 Глава № 8 «Женский таёжный покров: Как потушить приливы, жар и вернуть спокойный сон». Полезного чтения, Родная!",
-                )
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava8.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 8): {e}")
-
-
-# --- ВЕБ-СЕРВЕР ДЛЯ РЕНДЕРА ИЛИ ХОСТИНГА ---
-def run_dummy_server():
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def do_GET(self):
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b"OK")
-
-    port = int(os.environ.get("PORT", 10000))
-    try:
-        with socketserver.TCPServer(("", port), Handler) as httpd:
-            httpd.serve_forever()
-    except Exception as server_error:
-        print(f"Ошибка сервера: {server_error}")
-
-
-if __name__ == "__main__":
-    threading.Thread(target=run_dummy_server, daemon=True).start()
-    print("Агафья запущена...")
-    try:
-        bot.infinity_polling(timeout=10, long_polling_timeout=5)
-    except Exception as e:
-        print(f"Сбой сети: {e}")
+            bot.send_message(chat_id, "⚠️ Файл glava
