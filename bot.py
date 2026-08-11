@@ -38,9 +38,9 @@ def send_welcome(message):
 
     welcome_text = (
         f"Здравствуйте, родные! Рада, что вы заглянули в мою избушку. 🌿\n\n"
-        "Проходите, располагайтесь у очага. Я приготовила для вас кое-что особое"
-        " для уюта, здоровья и защиты дома.\n\n"
-        "Выберите ниже, с чего хотите начать, или просто **напишите свой вопрос прямо сюда в чат** "
+        "Проходите, располагайтесь у очага. Я приготовила для вас кое-что особое "
+        "для уюта, здоровья и защиты дома.\n\n"
+        "Выберите ниже, с чего хотите начать, или просто напишите свой вопрос прямо сюда в чат "
         "— я обязательно прочту и отвечу вам! 🤎"
     )
 
@@ -75,7 +75,7 @@ def send_welcome(message):
     )
 
     try:
-        bot.send_message(chat_id, welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+        bot.send_message(chat_id, welcome_text, reply_markup=keyboard)
 
         # Запись в users.txt
         try:
@@ -102,13 +102,12 @@ def send_welcome(message):
         print(f"Ошибка при старте: {e}")
 
 
-# --- ОБРАБОТКА ВХОДЯЩИХ ВОПРОСОВ И ОТВЕТОВ (ОБРАТНАЯ СВЯЗЬ) ---
+# --- ОБРАБОТКА ВХОДЯЩИХ ВОПРОСОВ И ОТВЕТОВ ---
 
-# 1. Ответ админа пользователю (через Функция Reply / Ответить в Telegram)
+# 1. Ответ админа пользователю (через Reply)
 @bot.message_handler(func=lambda message: message.chat.id == MY_ID and message.reply_to_message is not None)
 def handle_admin_reply(message):
     try:
-        # Извлекаем ID пользователя из текста пересланной карточки
         reply_text = message.reply_to_message.text or message.reply_to_message.caption or ""
         
         target_chat_id = None
@@ -133,7 +132,7 @@ def forward_user_question(message):
     username = message.from_user.username
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name or ""
-    user_link = f"@{username}" if username else f"без юзернейма"
+    user_link = f"@{username}" if username else "без юзернейма"
 
     info_card = (
         "💬 <b>Новое сообщение от гостя!</b>\n"
@@ -143,12 +142,9 @@ def forward_user_question(message):
     )
 
     try:
-        # Сначала отправляем админу инфо-карточку
         bot.send_message(MY_ID, info_card, parse_mode="HTML")
-        # Затем дублируем само сообщение пользователя (текст, голосовое, фото и т.д.)
         bot.copy_message(chat_id=MY_ID, from_chat_id=chat_id, message_id=message.message_id)
 
-        # Подтверждение пользователю
         bot.send_message(
             chat_id,
             "Благодарю за весточку, родная! 🌿 Я приняла твой вопрос и скоро обязательно отвечу."
@@ -164,10 +160,10 @@ def send_obereg(call):
     try:
         bot.answer_callback_query(call.id)
         obereg_text = (
-            "Ниже прикрепила ваш Звуковой Оберег \"Сумерки в избушке\". Это 7 минут"
-            " мягкого шуршания таежного костра, скрипа половиц и сибирского ветра."
-            " Включайте его перед сном, надевайте наушники и пускай все тревоги"
-            " этого дня останутся за порогом.\n\n"
+            "Ниже прикрепила ваш Звуковой Оберег \"Сумерки в избушке\". Это 7 минут "
+            "мягкого шуршания таежного костра, скрипа половиц и сибирского ветра. "
+            "Включайте его перед сном, надевайте наушники и пускай все тревоги "
+            "этого дня останутся за порогом.\n\n"
             "Доброй и мирной вам ночи! Спасайтесь покоем. ✨"
         )
         bot.send_message(chat_id, obereg_text)
@@ -258,63 +254,4 @@ def send_chapter_5(call):
                 bot.send_document(chat_id, doc, caption="📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома.")
         else:
             bot.send_message(chat_id, "⚠️ Файл glava5.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 5): {e}")
-
-
-# --- ГЛАВА 6/1 ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_1")
-def send_chapter_6_1(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_6_1_PATH):
-            with open(PDF_CHAPTER_6_1_PATH, "rb") as doc:
-                bot.send_document(chat_id, doc, caption="🌿 Глава № 6/1 «Свод таёжных правил: Отёк и мешки под глазами». Полезного чтения!")
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava6_1.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 6/1): {e}")
-
-
-# --- ГЛАВА 6/2 ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_2")
-def send_chapter_6_2(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_6_2_PATH):
-            with open(PDF_CHAPTER_6_2_PATH, "rb") as doc:
-                bot.send_document(chat_id, doc, caption="🌿 Глава № 6/2 «Свод таёжных правил: Вздутый живот — не жир». Полезного чтения!")
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava6_2.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 6/2): {e}")
-
-
-# --- ГЛАВА 6/3 ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_3")
-def send_chapter_6_3(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_6_3_PATH):
-            with open(PDF_CHAPTER_6_3_PATH, "rb") as doc:
-                bot.send_document(chat_id, doc, caption="🌿 Глава № 6/3 «Свод таёжных правил: Ломота в суставах и чистка печени». Полезного чтения!")
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava6_3.pdf не найден!")
-    except Exception as e:
-        print(f"Ошибка (Глава 6/3): {e}")
-
-
-# --- ГЛАВА 6/4 ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_6_4")
-def send_chapter_6_4(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_6_4_PATH):
-            with open(PDF_CHAPTER_6_4_PATH, "rb") as doc:
-                bot.send_document(chat_id, doc, caption="🌿 Глава № 6/4 «Свод таёжных правил: Разгон лимфы и лёгкость тела». Полезного чтения!")
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava
+    except Exception
