@@ -244,14 +244,4 @@ def send_chapter_4(call):
 
 
 # --- 5 ГЛАВА ---
-@bot.callback_query_handler(func=lambda call: call.data == "get_chapter_5")
-def send_chapter_5(call):
-    chat_id = call.message.chat.id
-    try:
-        bot.answer_callback_query(call.id)
-        if os.path.exists(PDF_CHAPTER_5_PATH):
-            with open(PDF_CHAPTER_5_PATH, "rb") as doc:
-                bot.send_document(chat_id, doc, caption="📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома.")
-        else:
-            bot.send_message(chat_id, "⚠️ Файл glava5.pdf не найден!")
-    except Exception
+@bot
