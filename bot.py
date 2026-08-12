@@ -8,7 +8,7 @@ import telebot
 from telebot import types
 
 # 1. ТОКЕН БОТА И АДМИН
-BOT_TOKEN = "8839565108:AAHVrntxTPCmz6IIz75ICHPjWCeLPIo3edI"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 MY_ID = 716432345
 
 bot = telebot.TeleBot(BOT_TOKEN)
