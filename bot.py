@@ -2,6 +2,7 @@ import http.server
 import os
 import socketserver
 import threading
+import time
 import telebot
 from telebot import types
 
@@ -35,6 +36,57 @@ def safe_send_doc(chat_id, file_path, caption_text, err_msg):
             bot.send_document(chat_id, doc, caption=caption_text)
     else:
         bot.send_message(chat_id, err_msg)
+
+
+# --- КОМАНДА /BROADCAST (МАССОВАЯ РАССЫЛКА ОТ АДМИНА) ---
+@bot.message_handler(commands=["broadcast"])
+def broadcast_message(message):
+    if message.chat.id != MY_ID:
+        return
+
+    # Отрезаем саму команду /broadcast и оставляем текст
+    raw_text = message.text.replace("/broadcast", "", 1).strip()
+    
+    if not raw_text:
+        bot.send_message(
+            MY_ID, 
+            "⚠️ <b>Текст рассылки пуст!</b>\n\n"
+            "Использование: Напишите <code>/broadcast Ваш текст сообщения</code>", 
+            parse_mode="HTML"
+        )
+        return
+
+    users_file = os.path.join(BASE_DIR, "users.txt")
+    if not os.path.exists(users_file):
+        bot.send_message(MY_ID, "⚠️ Файл users.txt пока пуст или не найден!")
+        return
+
+    with open(users_file, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    success_count = 0
+    fail_count = 0
+
+    bot.send_message(MY_ID, f"🚀 Начинаю рассылку по {len(lines)} пользователям...")
+
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            user_id = int(line.split("|")[0].strip())
+            bot.send_message(user_id, raw_text)
+            success_count += 1
+            time.sleep(0.05)  # Небольшая пауза, чтобы не превысить лимиты Telegram
+        except Exception as e:
+            fail_count += 1
+            print(f"Ошибка отправки пользователю {line}: {e}")
+
+    report = (
+        "✅ <b>Рассылка завершена!</b>\n\n"
+        f"📨 Успешно доставлено: {success_count}\n"
+        f"❌ Не доставлено (заблокировали бота/ошибка): {fail_count}"
+    )
+    bot.send_message(MY_ID, report, parse_mode="HTML")
 
 
 # --- КОМАНДА /START ---
@@ -75,7 +127,8 @@ def send_welcome(message):
 
         # Запись в users.txt
         try:
-            with open("users.txt", "a+", encoding="utf-8") as f:
+            users_file = os.path.join(BASE_DIR, "users.txt")
+            with open(users_file, "a+", encoding="utf-8") as f:
                 f.seek(0)
                 existing_users = f.read()
                 user_entry = f"{chat_id}|@{username}|{first_name}\n"
@@ -109,6 +162,9 @@ def handle_admin_reply(message):
         for line in reply_text.split("\n"):
             if "🆔 ID:" in line:
                 target_chat_id = line.split("🆔 ID:")[1].strip()
+                break
+            elif "🆔 Чат ID:" in line:
+                target_chat_id = line.split("🆔 Чат ID:")[1].strip()
                 break
 
         if target_chat_id:
