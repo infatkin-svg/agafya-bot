@@ -7,7 +7,7 @@ import time
 import telebot
 from telebot import types
 
-# 1. ТОКЕН БОТА И АДМИН
+# 1. ТОКЕН БОТА И АДМИН (Берется из переменных окружения Render)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MY_ID = 716432345
 
@@ -31,6 +31,72 @@ PDF_CHAPTER_7_PATH = os.path.join(BASE_DIR, "glava7.pdf")
 PDF_CHAPTER_8_PATH = os.path.join(BASE_DIR, "glava8.pdf")
 PDF_CHAPTER_9_PATH = os.path.join(BASE_DIR, "glava9.pdf")
 
+# Список прошлых гостей из лога переписки (51 уникальный ID)
+INITIAL_GUESTS = [
+    972590376,
+    7874353979,
+    2142813844,
+    1005826982,
+    960773142,
+    5360211724,
+    186345104,
+    6345301767,
+    7176966939,
+    7400525569,
+    5906525516,
+    966844092,
+    7411615458,
+    639796100,
+    8343293870,
+    871132840,
+    6937446446,
+    1812630618,
+    500343364,
+    6067972407,
+    1515696533,
+    5692867980,
+    1166876122,
+    5583221199,
+    6908948453,
+    1473397876,
+    1354742820,
+    1962567469,
+    6330738643,
+    2072287319,
+    1040962131,
+    654334918,
+    5329525966,
+    7086721632,
+    1050800165,
+    548851107,
+    2091753186,
+    8123470626,
+    1182479691,
+    5010735104,
+    693592303,
+    938056919,
+    799212849,
+    1199596751,
+    5805421555,
+    109636533,
+    6254189069,
+    5283289971,
+    1224415228,
+    8907196646,
+    1579616660,
+    5052348905,
+    549796719,
+    493381511,
+    1504442195,
+    1871949325,
+    8386613682,
+    7642883700,
+    7748875462,
+    1154576595,
+    7752207823,
+    767376607,
+]
+
 
 # --- ИНИЦИАЛИЗА БАЗЫ ДАННЫХ ---
 def init_db():
@@ -45,6 +111,17 @@ def init_db():
         )
     """
     )
+
+    # Принудительно наполняем базу прошлыми гостями из логов
+    for gid in INITIAL_GUESTS:
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO users (chat_id, username, first_name)
+            VALUES (?, ?, ?)
+        """,
+            (gid, "", "Старый гость"),
+        )
+
     conn.commit()
     conn.close()
 
@@ -106,10 +183,6 @@ def broadcast_message(message):
 
     user_ids = get_all_users()
 
-    # Резерв на случай, если база пока пуста, но есть старые ID из логов
-    if not user_ids:
-        user_ids = [997018287, 7884966160]
-
     success_count = 0
     fail_count = 0
 
@@ -121,7 +194,7 @@ def broadcast_message(message):
         try:
             bot.send_message(uid, raw_text)
             success_count += 1
-            time.sleep(0.05)
+            time.sleep(0.05)  # Задержка, чтобы Telegram не заблокировал за спам
         except Exception as e:
             fail_count += 1
             print(f"Ошибка отправки {uid}: {e}")
@@ -142,7 +215,7 @@ def send_welcome(message):
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name or ""
 
-    # Автоматически сохраняем пользователя в Базу Данных
+    # Автоматически сохраняем нового пользователя в Базу Данных
     add_user(chat_id, username, first_name)
 
     welcome_text = (
@@ -270,7 +343,7 @@ def forward_user_question(message):
     last_name = message.from_user.last_name or ""
     user_link = f"@{username}" if username else "без юзернейма"
 
-    # Тоже добавляем человека в БД на случай, если он написал вопрос, не нажав /start
+    # Тоже добавляем человека в БД
     add_user(chat_id, username, first_name)
 
     info_card = (
