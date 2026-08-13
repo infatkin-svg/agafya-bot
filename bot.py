@@ -46,6 +46,9 @@ PDF_CHAPTER_9_PATH = os.path.join(BASE_DIR, "glava9.pdf")
 # НОВАЯ ГЛАВА №10
 PDF_CHAPTER_10_PATH = os.path.join(BASE_DIR, "glava10.pdf")
 
+# НОВАЯ ГЛАВА №11
+PDF_CHAPTER_11_PATH = os.path.join(BASE_DIR, "glava11.pdf")
+
 
 # ============================================================
 # 3. MASTER-СПИСОК ПОЛЬЗОВАТЕЛЕЙ
@@ -133,6 +136,7 @@ def init_db():
     # Здесь будем видеть:
     # START
     # CHAPTER_10
+    # CHAPTER_11
     #
     # А завтра можно добавить:
     # OFFER_299
@@ -596,6 +600,11 @@ def send_welcome(message):
             text="🌿 Глава 10: Лёгкий живот и псиллиум (PDF)",
             callback_data="get_chapter_10",
         ),
+
+        types.InlineKeyboardButton(
+            text="🌸 Глава 11: Женская чистота — 5 вещей, которые лучше не делать (PDF)",
+            callback_data="get_chapter_11",
+        ),
     )
 
     try:
@@ -605,6 +614,21 @@ def send_welcome(message):
             welcome_text,
             reply_markup=keyboard,
         )
+
+        # Deep-link ?start=uhod — сразу выдаём главу №11
+        if source == "uhod":
+            log_event(
+                chat_id,
+                "CHAPTER_11",
+                "uhod",
+            )
+
+            safe_send_doc(
+                chat_id,
+                PDF_CHAPTER_11_PATH,
+                "🌸 Глава № 11 «Женская чистота: 5 вещей, которые лучше не делать».",
+                "⚠️ Файл glava11.pdf не найден!",
+            )
 
         # Уведомление владельцу
 
@@ -993,6 +1017,27 @@ def handle_callbacks(call):
                 "простой способ с псиллиумом "
                 "для мягкой работы кишечника».",
                 "⚠️ Файл glava10.pdf не найден!",
+            )
+
+        # ----------------------------------------------------
+        # НОВАЯ ГЛАВА №11
+        # ----------------------------------------------------
+
+        elif data == "get_chapter_11":
+
+            log_event(
+                chat_id,
+                "CHAPTER_11",
+                "button",
+            )
+
+            safe_send_doc(
+                chat_id,
+                PDF_CHAPTER_11_PATH,
+                "🌸 Глава № 11 "
+                "«Женская чистота: "
+                "5 вещей, которые лучше не делать».",
+                "⚠️ Файл glava11.pdf не найден!",
             )
 
     except Exception as e:
