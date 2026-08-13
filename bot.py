@@ -26,6 +26,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "users.db")
+MASTER_USERS_PATH = os.path.join(BASE_DIR, "users_master.txt")
 
 AUDIO_PATH = os.path.join(BASE_DIR, "obereg.mp3")
 
@@ -47,73 +48,40 @@ PDF_CHAPTER_10_PATH = os.path.join(BASE_DIR, "glava10.pdf")
 
 
 # ============================================================
-# 3. СТАРЫЕ ГОСТИ
+# 3. MASTER-СПИСОК ПОЛЬЗОВАТЕЛЕЙ
 # ============================================================
 
-INITIAL_GUESTS = [
-    972590376,
-    7874353979,
-    2142813844,
-    1005826982,
-    960773142,
-    5360211724,
-    186345104,
-    6345301767,
-    7176966939,
-    7400525569,
-    5906525516,
-    966844092,
-    7411615458,
-    639796100,
-    8343293870,
-    871132840,
-    6937446446,
-    1812630618,
-    500343364,
-    6067972407,
-    1515696533,
-    5692867980,
-    1166876122,
-    5583221199,
-    6908948453,
-    1473397876,
-    1354742820,
-    1962567469,
-    6330738643,
-    2072287319,
-    1040962131,
-    654334918,
-    5329525966,
-    7086721632,
-    1050800165,
-    548851107,
-    2091753186,
-    8123470626,
-    1182479691,
-    5010735104,
-    693592303,
-    938056919,
-    799212849,
-    1199596751,
-    5805421555,
-    109636533,
-    6254189069,
-    5283289971,
-    1224415228,
-    8907196646,
-    1579616660,
-    5052348905,
-    549796719,
-    493381511,
-    1504442195,
-    1871949325,
-    8386613682,
-    7642883700,
-    7748875462,
-    1154576595,
-    7752207823,
-    767376607,
-]
+def load_master_users():
+    """Читает уникальные Telegram chat_id из users_master.txt."""
+    users = set()
+
+    if not os.path.exists(MASTER_USERS_PATH):
+        print("ВНИМАНИЕ: users_master.txt не найден")
+        return []
+
+    try:
+        with open(MASTER_USERS_PATH, "r", encoding="utf-8-sig") as f:
+            for line in f:
+                value = line.strip()
+
+                if not value:
+                    continue
+
+                if value.isdigit():
+                    users.add(int(value))
+                else:
+                    print(f"Пропущена некорректная строка users_master.txt: {value}")
+
+    except Exception as e:
+        print(f"Ошибка чтения users_master.txt: {e}")
+        return []
+
+    result = sorted(users)
+    print(f"Master-список загружен: {len(result)} пользователей")
+    return result
+
+
+INITIAL_GUESTS = load_master_users()
 
 
 # ============================================================
@@ -356,7 +324,72 @@ def safe_send_doc(chat_id, file_path, caption_text, err_msg):
 
 
 # ============================================================
-# 6. МАССОВАЯ РАССЫЛКА
+# 6. СТАТИСТИКА ПОЛЬЗОВАТЕЛЕЙ
+# ============================================================
+
+@bot.message_handler(commands=["users"])
+def users_stats(message):
+
+    if message.chat.id != MY_ID:
+        return
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM users")
+        total_users = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM users
+            WHERE source = 'old_guest'
+            """
+        )
+        master_users = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM users
+            WHERE source IS NOT NULL
+              AND source != ''
+              AND source != 'old_guest'
+            """
+        )
+        tracked_users = cursor.fetchone()[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(DISTINCT chat_id)
+            FROM events
+            WHERE event = 'START'
+            """
+        )
+        started_users = cursor.fetchone()[0]
+
+        conn.close()
+
+        bot.send_message(
+            MY_ID,
+            "👥 <b>Пользователи Агафьи</b>\n\n"
+            f"Всего в базе: <b>{total_users}</b>\n"
+            f"Импортировано из master: <b>{master_users}</b>\n"
+            f"С известным новым источником: <b>{tracked_users}</b>\n"
+            f"Зафиксирован START в events: <b>{started_users}</b>",
+            parse_mode="HTML",
+        )
+
+    except Exception as e:
+        bot.send_message(
+            MY_ID,
+            f"❌ Ошибка статистики: {e}",
+        )
+
+
+# ============================================================
+# 7. МАССОВАЯ РАССЫЛКА
 # ============================================================
 
 @bot.message_handler(commands=["broadcast"])
@@ -428,7 +461,7 @@ def broadcast_message(message):
 
 
 # ============================================================
-# 7. /START
+# 8. /START
 # ============================================================
 
 @bot.message_handler(commands=["start"])
@@ -603,7 +636,7 @@ def send_welcome(message):
 
 
 # ============================================================
-# 8. ОТВЕТ АДМИНА ПОЛЬЗОВАТЕЛЮ
+# 9. ОТВЕТ АДМИНА ПОЛЬЗОВАТЕЛЮ
 # ============================================================
 
 @bot.message_handler(
@@ -674,7 +707,7 @@ def handle_admin_reply(message):
 
 
 # ============================================================
-# 9. СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ
+# 10. СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ
 # ============================================================
 
 @bot.message_handler(
@@ -741,7 +774,7 @@ def forward_user_question(message):
 
 
 # ============================================================
-# 10. КНОПКИ
+# 11. КНОПКИ
 # ============================================================
 
 @bot.callback_query_handler(
@@ -970,7 +1003,7 @@ def handle_callbacks(call):
 
 
 # ============================================================
-# 11. ВЕБ-СЕРВЕР ДЛЯ RENDER
+# 12. ВЕБ-СЕРВЕР ДЛЯ RENDER
 # ============================================================
 
 def run_dummy_server():
@@ -1013,7 +1046,7 @@ def run_dummy_server():
 
 
 # ============================================================
-# 12. ЗАПУСК
+# 13. ЗАПУСК
 # ============================================================
 
 if __name__ == "__main__":
