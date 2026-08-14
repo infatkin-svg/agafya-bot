@@ -465,6 +465,41 @@ def broadcast_message(message):
 
 
 # ============================================================
+# 7.1. ВОРОНКА "ЧИСЛО" ИЗ INSTAGRAM / MANYCHAT
+# ============================================================
+
+def send_chislo_entry(chat_id):
+    """Продолжение подсказки для deep-link ?start=chislo."""
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("❤️ Отношения", callback_data="chislo_relationships"),
+        types.InlineKeyboardButton("💰 Деньги и дела", callback_data="chislo_money"),
+        types.InlineKeyboardButton("🏡 Дом и семья", callback_data="chislo_home"),
+        types.InlineKeyboardButton("🌿 Моё состояние", callback_data="chislo_state"),
+    )
+    bot.send_message(
+        chat_id,
+        "🌿 Вижу, ты пришла за продолжением своей подсказки.\n\n"
+        "Здесь можно заглянуть чуть глубже. Выбери, о чём сейчас думаешь больше всего 👇",
+        reply_markup=keyboard,
+    )
+
+
+def send_main_hut_menu(chat_id):
+    """Короткий переход из воронки в обычную Избушку через /start."""
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        types.InlineKeyboardButton("🏡 Открыть Избушку", callback_data="open_main_hut")
+    )
+    bot.send_message(
+        chat_id,
+        "🌿 Если захочешь остаться — в Избушке собраны главы «Домашней тетради». "
+        "И можешь написать мне свой вопрос прямо сюда.",
+        reply_markup=keyboard,
+    )
+
+
+# ============================================================
 # 8. /START
 # ============================================================
 
@@ -609,11 +644,14 @@ def send_welcome(message):
 
     try:
 
-        bot.send_message(
-            chat_id,
-            welcome_text,
-            reply_markup=keyboard,
-        )
+        if source == "chislo":
+            send_chislo_entry(chat_id)
+        else:
+            bot.send_message(
+                chat_id,
+                welcome_text,
+                reply_markup=keyboard,
+            )
 
         # Deep-link ?start=uhod — сразу выдаём главу №11
         if source == "uhod":
@@ -816,10 +854,61 @@ def handle_callbacks(call):
         )
 
         # ----------------------------------------------------
+        # ВОРОНКА "ЧИСЛО" ИЗ INSTAGRAM / MANYCHAT
+        # ----------------------------------------------------
+
+        if data == "chislo_relationships":
+            log_event(chat_id, "CHISLO_RELATIONSHIPS", "chislo")
+            bot.send_message(
+                chat_id,
+                "❤️ Отношения\n\n"
+                "Не пытайся сегодня угадывать за другого человека. Смотри не на обещания, а на поступки. "
+                "Если рядом с кем-то тебе всё время приходится сомневаться в своей ценности — это уже важная подсказка.",
+            )
+            send_main_hut_menu(chat_id)
+
+        elif data == "chislo_money":
+            log_event(chat_id, "CHISLO_MONEY", "chislo")
+            bot.send_message(
+                chat_id,
+                "💰 Деньги и дела\n\n"
+                "Сегодня не принимай решение только потому, что тебя торопят. Перед покупкой, обещанием или новым делом "
+                "задай себе простой вопрос: «Что я получу и чем за это заплачу?» Иногда этого достаточно, чтобы увидеть лишнее.",
+            )
+            send_main_hut_menu(chat_id)
+
+        elif data == "chislo_home":
+            log_event(chat_id, "CHISLO_HOME", "chislo")
+            bot.send_message(
+                chat_id,
+                "🏡 Дом и семья\n\n"
+                "Сегодня выбери дома одно маленькое дело, которое давно откладывалось, и закончи только его. "
+                "Не надо исправлять всё сразу. Иногда одна закрытая мелочь заметно меняет настроение в доме.",
+            )
+            send_main_hut_menu(chat_id)
+
+        elif data == "chislo_state":
+            log_event(chat_id, "CHISLO_STATE", "chislo")
+            bot.send_message(
+                chat_id,
+                "🌿 Моё состояние\n\n"
+                "Сегодня проверь не список дел, а себя: выспалась ли, ела ли нормально, выходила ли на воздух, "
+                "не тащишь ли на себе лишнее. Иногда состояние просит не нового средства, а обычной передышки.",
+            )
+            send_main_hut_menu(chat_id)
+
+        elif data == "open_main_hut":
+            log_event(chat_id, "OPEN_MAIN_HUT", "chislo")
+            # Повторно используем обычный /start без deep-link.
+            message = call.message
+            message.text = "/start"
+            send_welcome(message)
+
+        # ----------------------------------------------------
         # ОБЕРЕГ
         # ----------------------------------------------------
 
-        if data == "get_obereg":
+        elif data == "get_obereg":
 
             obereg_text = (
                 'Ниже прикрепила ваш Звуковой Оберег '
