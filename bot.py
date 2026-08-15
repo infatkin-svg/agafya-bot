@@ -49,6 +49,9 @@ PDF_CHAPTER_10_PATH = os.path.join(BASE_DIR, "glava10.pdf")
 # НОВАЯ ГЛАВА №11
 PDF_CHAPTER_11_PATH = os.path.join(BASE_DIR, "glava11.pdf")
 
+# НОВАЯ ГЛАВА №12
+PDF_CHAPTER_12_PATH = os.path.join(BASE_DIR, "glava12.pdf")
+
 
 # ============================================================
 # 3. MASTER-СПИСОК ПОЛЬЗОВАТЕЛЕЙ
@@ -640,6 +643,11 @@ def send_welcome(message):
             text="🌸 Глава 11: Женская чистота — 5 вещей, которые лучше не делать (PDF)",
             callback_data="get_chapter_11",
         ),
+
+        types.InlineKeyboardButton(
+            text="🌙 Глава 12: Ночной жар — что проверить перед сном (PDF)",
+            callback_data="get_chapter_12",
+        ),
     )
 
     try:
@@ -1167,6 +1175,27 @@ def handle_callbacks(call):
                 "«Женская чистота: "
                 "5 вещей, которые лучше не делать».",
                 "⚠️ Файл glava11.pdf не найден!",
+            )
+
+        # ----------------------------------------------------
+        # НОВАЯ ГЛАВА №12
+        # ----------------------------------------------------
+
+        elif data == "get_chapter_12":
+
+            log_event(
+                chat_id,
+                "CHAPTER_12",
+                "button",
+            )
+
+            safe_send_doc(
+                chat_id,
+                PDF_CHAPTER_12_PATH,
+                "🌙 Глава № 12 "
+                "«Ночной жар: что проверить перед сном, "
+                "если приливы будят ночью».",
+                "⚠️ Файл glava12.pdf не найден!",
             )
 
     except Exception as e:
