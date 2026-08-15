@@ -676,6 +676,21 @@ def send_welcome(message):
                 "⚠️ Файл glava11.pdf не найден!",
             )
 
+        # Deep-link ?start=noch12 — сразу выдаём главу №12
+        if source == "noch12":
+            log_event(
+                chat_id,
+                "CHAPTER_12",
+                "noch12",
+            )
+
+            safe_send_doc(
+                chat_id,
+                PDF_CHAPTER_12_PATH,
+                "🌙 Глава № 12 «Ночной жар: что проверить перед сном, если приливы будят ночью».",
+                "⚠️ Файл glava12.pdf не найден!",
+            )
+
         # Уведомление владельцу
 
         user_link = (
