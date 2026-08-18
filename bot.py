@@ -52,6 +52,9 @@ PDF_CHAPTER_11_PATH = os.path.join(BASE_DIR, "glava11.pdf")
 # НОВАЯ ГЛАВА №12
 PDF_CHAPTER_12_PATH = os.path.join(BASE_DIR, "glava12.pdf")
 
+# НОВАЯ ГЛАВА №14
+PDF_CHAPTER_14_PATH = os.path.join(BASE_DIR, "glava14.pdf")
+
 
 # ============================================================
 # 3. MASTER-СПИСОК ПОЛЬЗОВАТЕЛЕЙ
@@ -648,6 +651,11 @@ def send_welcome(message):
             text="🌙 Глава 12: Ночной жар — что проверить перед сном (PDF)",
             callback_data="get_chapter_12",
         ),
+
+        types.InlineKeyboardButton(
+            text="🌿 Глава 14: Утро начинается вечером (PDF)",
+            callback_data="get_chapter_14",
+        ),
     )
 
     try:
@@ -1211,6 +1219,27 @@ def handle_callbacks(call):
                 "«Ночной жар: что проверить перед сном, "
                 "если приливы будят ночью».",
                 "⚠️ Файл glava12.pdf не найден!",
+            )
+
+        # ----------------------------------------------------
+        # НОВАЯ ГЛАВА №14
+        # ----------------------------------------------------
+
+        elif data == "get_chapter_14":
+
+            log_event(
+                chat_id,
+                "CHAPTER_14",
+                "button",
+            )
+
+            safe_send_doc(
+                chat_id,
+                PDF_CHAPTER_14_PATH,
+                "🌿 Глава № 14 "
+                "«Утро начинается вечером: что делать, если лицо после сна "
+                "будто налилось водой».",
+                "⚠️ Файл glava14.pdf не найден!",
             )
 
     except Exception as e:
