@@ -47,8 +47,8 @@ PDF_CHAPTER_11_PATH = os.path.join(BASE_DIR, "glava11.pdf")
 PDF_CHAPTER_12_PATH = os.path.join(BASE_DIR, "glava12.pdf")
 PDF_CHAPTER_14_PATH = os.path.join(BASE_DIR, "glava14.pdf")
 
-# НОВАЯ ГЛАВА №15 (HTML)
-HTML_CHAPTER_15_PATH = os.path.join(BASE_DIR, "glava15.html")
+# НОВАЯ ГЛАВА №15 (PDF)
+PDF_CHAPTER_15_PATH = os.path.join(BASE_DIR, "glava15.pdf")
 
 
 # ============================================================
@@ -273,7 +273,7 @@ init_db()
 
 
 # ============================================================
-# 5. ОТПРАВКА ДОКУМЕНТОВ (PDF / HTML / И ДР.)
+# 5. ОТПРАВКА PDF
 # ============================================================
 
 def safe_send_doc(chat_id, file_path, caption_text, err_msg):
@@ -563,7 +563,7 @@ def send_welcome(message):
         ),
         # НОВАЯ ГЛАВА №15
         types.InlineKeyboardButton(
-            text="🌿 Глава 15: Онемение рук и зажим нерва в запястье (HTML)",
+            text="🌿 Глава 15: Онемение рук и зажим нерва в запястье (PDF)",
             callback_data="get_chapter_15",
         ),
     )
@@ -603,9 +603,9 @@ def send_welcome(message):
             log_event(chat_id, "CHAPTER_15", source)
             safe_send_doc(
                 chat_id,
-                HTML_CHAPTER_15_PATH,
+                PDF_CHAPTER_15_PATH,
                 "🌿 Глава № 15 «Как убрать ночное онемение кистей и освободить зажатый нерв в запястье».",
-                "⚠️ Файл glava15.html не найден!",
+                "⚠️ Файл glava15.pdf не найден!",
             )
 
         user_link = f"@{username}" if username else f"ID: {chat_id}"
@@ -999,9 +999,9 @@ def handle_callbacks(call):
             log_event(chat_id, "CHAPTER_15", "button")
             safe_send_doc(
                 chat_id,
-                HTML_CHAPTER_15_PATH,
+                PDF_CHAPTER_15_PATH,
                 "🌿 Глава № 15 «Как убрать ночное онемение кистей и освободить зажатый нерв в запястье».",
-                "⚠️ Файл glava15.html не найден!",
+                "⚠️ Файл glava15.pdf не найден!",
             )
 
     except Exception as e:
