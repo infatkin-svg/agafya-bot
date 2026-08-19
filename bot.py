@@ -42,18 +42,13 @@ PDF_CHAPTER_6_4_PATH = os.path.join(BASE_DIR, "glava6_4.pdf")
 PDF_CHAPTER_7_PATH = os.path.join(BASE_DIR, "glava7.pdf")
 PDF_CHAPTER_8_PATH = os.path.join(BASE_DIR, "glava8.pdf")
 PDF_CHAPTER_9_PATH = os.path.join(BASE_DIR, "glava9.pdf")
-
-# НОВАЯ ГЛАВА №10
 PDF_CHAPTER_10_PATH = os.path.join(BASE_DIR, "glava10.pdf")
-
-# НОВАЯ ГЛАВА №11
 PDF_CHAPTER_11_PATH = os.path.join(BASE_DIR, "glava11.pdf")
-
-# НОВАЯ ГЛАВА №12
 PDF_CHAPTER_12_PATH = os.path.join(BASE_DIR, "glava12.pdf")
-
-# НОВАЯ ГЛАВА №14
 PDF_CHAPTER_14_PATH = os.path.join(BASE_DIR, "glava14.pdf")
+
+# НОВАЯ ГЛАВА №15 (HTML)
+HTML_CHAPTER_15_PATH = os.path.join(BASE_DIR, "glava15.html")
 
 
 # ============================================================
@@ -101,7 +96,6 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Основная таблица пользователей
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
@@ -111,11 +105,6 @@ def init_db():
         )
         """
     )
-
-    # --------------------------------------------------------
-    # Обновляем СТАРУЮ базу, не удаляя существующих людей.
-    # Добавляем created_at и source, если этих полей ещё нет.
-    # --------------------------------------------------------
 
     cursor.execute("PRAGMA table_info(users)")
     columns = [column[1] for column in cursor.fetchall()]
@@ -136,20 +125,6 @@ def init_db():
             """
         )
 
-    # --------------------------------------------------------
-    # Таблица событий
-    #
-    # Здесь будем видеть:
-    # START
-    # CHAPTER_10
-    # CHAPTER_11
-    #
-    # А завтра можно добавить:
-    # OFFER_299
-    # PAY_CLICK
-    # PAID
-    # --------------------------------------------------------
-
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS events (
@@ -162,7 +137,6 @@ def init_db():
         """
     )
 
-    # Наполняем базу прошлыми гостями
     for gid in INITIAL_GUESTS:
         cursor.execute(
             """
@@ -184,14 +158,6 @@ def init_db():
 
 
 def add_user(chat_id, username, first_name, source="direct"):
-    """
-    Добавляет нового человека.
-
-    Если человек уже есть в базе:
-    обновляем username/имя,
-    но НЕ перезаписываем первый источник прихода.
-    """
-
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -254,10 +220,6 @@ def add_user(chat_id, username, first_name, source="direct"):
 
 
 def log_event(chat_id, event, source=""):
-    """
-    Записываем действия пользователя.
-    """
-
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -302,30 +264,26 @@ def get_all_users():
     )
 
     rows = cursor.fetchall()
-
     conn.close()
 
     return [r[0] for r in rows]
 
 
-# Запускаем/обновляем базу
 init_db()
 
 
 # ============================================================
-# 5. ОТПРАВКА PDF
+# 5. ОТПРАВКА ДОКУМЕНТОВ (PDF / HTML / И ДР.)
 # ============================================================
 
 def safe_send_doc(chat_id, file_path, caption_text, err_msg):
     if os.path.exists(file_path):
-
         with open(file_path, "rb") as doc:
             bot.send_document(
                 chat_id,
                 doc,
                 caption=caption_text,
             )
-
     else:
         bot.send_message(
             chat_id,
@@ -339,7 +297,6 @@ def safe_send_doc(chat_id, file_path, caption_text, err_msg):
 
 @bot.message_handler(commands=["users"])
 def users_stats(message):
-
     if message.chat.id != MY_ID:
         return
 
@@ -404,7 +361,6 @@ def users_stats(message):
 
 @bot.message_handler(commands=["broadcast"])
 def broadcast_message(message):
-
     if message.chat.id != MY_ID:
         return
 
@@ -415,7 +371,6 @@ def broadcast_message(message):
     ).strip()
 
     if not raw_text:
-
         bot.send_message(
             MY_ID,
             "⚠️ <b>Текст рассылки пуст!</b>\n\n"
@@ -423,11 +378,9 @@ def broadcast_message(message):
             "<code>/broadcast Ваш текст</code>",
             parse_mode="HTML",
         )
-
         return
 
     user_ids = get_all_users()
-
     success_count = 0
     fail_count = 0
 
@@ -438,24 +391,16 @@ def broadcast_message(message):
     )
 
     for uid in user_ids:
-
         try:
             bot.send_message(
                 uid,
                 raw_text,
             )
-
             success_count += 1
-
             time.sleep(0.05)
-
         except Exception as e:
-
             fail_count += 1
-
-            print(
-                f"Ошибка отправки {uid}: {e}"
-            )
+            print(f"Ошибка отправки {uid}: {e}")
 
     report = (
         "✅ <b>Рассылка завершена!</b>\n\n"
@@ -475,7 +420,6 @@ def broadcast_message(message):
 # ============================================================
 
 def send_chislo_entry(chat_id):
-    """Продолжение подсказки для deep-link ?start=chislo."""
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
         types.InlineKeyboardButton("❤️ Отношения", callback_data="chislo_relationships"),
@@ -492,7 +436,6 @@ def send_chislo_entry(chat_id):
 
 
 def send_main_hut_menu(chat_id):
-    """Короткий переход из воронки в обычную Избушку через /start."""
     keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
         types.InlineKeyboardButton("🏡 Открыть Избушку", callback_data="open_main_hut")
@@ -511,33 +454,18 @@ def send_main_hut_menu(chat_id):
 
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
-
     chat_id = message.chat.id
 
     username = message.from_user.username
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name or ""
 
-    # --------------------------------------------------------
-    # Определяем источник.
-    #
-    # Обычная ссылка:
-    # t.me/Agafya_Travnitsa_bot
-    #
-    # Ссылка из ManyChat:
-    # t.me/Agafya_Travnitsa_bot?start=zhivot
-    # --------------------------------------------------------
-
-    parts = message.text.split(
-        maxsplit=1
-    )
-
+    parts = message.text.split(maxsplit=1)
     source = "direct"
 
     if len(parts) > 1:
         source = parts[1].strip().lower()
 
-    # Сохраняем пользователя
     add_user(
         chat_id,
         username,
@@ -545,7 +473,6 @@ def send_welcome(message):
         source,
     )
 
-    # Фиксируем START
     log_event(
         chat_id,
         "START",
@@ -555,111 +482,93 @@ def send_welcome(message):
     welcome_text = (
         "Здравствуйте, родные! "
         "Рада, что вы заглянули в мою избушку. 🌿\n\n"
-
         "Проходите, располагайтесь у очага. "
         "Я приготовила для вас кое-что особое "
         "для уюта, здоровья и защиты дома.\n\n"
-
         "Выберите ниже, с чего хотите начать, "
         "или просто напишите свой вопрос прямо сюда в чат "
         "— я обязательно прочту и отвечу вам! 🤎"
     )
 
-    keyboard = types.InlineKeyboardMarkup(
-        row_width=1
-    )
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
 
     keyboard.add(
-
         types.InlineKeyboardButton(
             text="🎧 Получить Звуковой Оберег",
             callback_data="get_obereg",
         ),
-
         types.InlineKeyboardButton(
             text="📖 Читать 1-ю главу (PDF)",
             callback_data="get_chapter_1",
         ),
-
         types.InlineKeyboardButton(
             text="📖 Читать 2-ю главу (PDF)",
             callback_data="get_chapter_2",
         ),
-
         types.InlineKeyboardButton(
             text="📖 Читать 3-ю главу (PDF)",
             callback_data="get_chapter_3",
         ),
-
         types.InlineKeyboardButton(
             text="📖 Читать 4-ю главу (PDF)",
             callback_data="get_chapter_4",
         ),
-
         types.InlineKeyboardButton(
             text="📖 Читать 5-ю главу (PDF)",
             callback_data="get_chapter_5",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 6/1: Отёки и лимфа (PDF)",
             callback_data="get_chapter_6_1",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 6/2: Вздутый живот (PDF)",
             callback_data="get_chapter_6_2",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 6/3: Суставы и желчь (PDF)",
             callback_data="get_chapter_6_3",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 6/4: Полный разгон лимфы (PDF)",
             callback_data="get_chapter_6_4",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 7: Таёжный щит для спины и грыжи (PDF)",
             callback_data="get_chapter_7",
         ),
-
         types.InlineKeyboardButton(
             text="🌸 Глава 8: Женский сбор от приливов и жара (PDF)",
             callback_data="get_chapter_8",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 9: Корень солодки от тёмных пятнышек (PDF)",
             callback_data="get_chapter_9",
         ),
-
-        # НОВАЯ КНОПКА
         types.InlineKeyboardButton(
             text="🌿 Глава 10: Лёгкий живот и псиллиум (PDF)",
             callback_data="get_chapter_10",
         ),
-
         types.InlineKeyboardButton(
             text="🌸 Глава 11: Женская чистота — 5 вещей, которые лучше не делать (PDF)",
             callback_data="get_chapter_11",
         ),
-
         types.InlineKeyboardButton(
             text="🌙 Глава 12: Ночной жар — что проверить перед сном (PDF)",
             callback_data="get_chapter_12",
         ),
-
         types.InlineKeyboardButton(
             text="🌿 Глава 14: Утро начинается вечером (PDF)",
             callback_data="get_chapter_14",
         ),
+        # НОВАЯ ГЛАВА №15
+        types.InlineKeyboardButton(
+            text="🌿 Глава 15: Онемение рук и зажим нерва в запястье (HTML)",
+            callback_data="get_chapter_15",
+        ),
     )
 
     try:
-
         if source == "chislo":
             send_chislo_entry(chat_id)
         else:
@@ -671,12 +580,7 @@ def send_welcome(message):
 
         # Deep-link ?start=uhod — сразу выдаём главу №11
         if source == "uhod":
-            log_event(
-                chat_id,
-                "CHAPTER_11",
-                "uhod",
-            )
-
+            log_event(chat_id, "CHAPTER_11", "uhod")
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_11_PATH,
@@ -686,12 +590,7 @@ def send_welcome(message):
 
         # Deep-link ?start=noch12 — сразу выдаём главу №12
         if source == "noch12":
-            log_event(
-                chat_id,
-                "CHAPTER_12",
-                "noch12",
-            )
-
+            log_event(chat_id, "CHAPTER_12", "noch12")
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_12_PATH,
@@ -699,13 +598,17 @@ def send_welcome(message):
                 "⚠️ Файл glava12.pdf не найден!",
             )
 
-        # Уведомление владельцу
+        # Deep-link ?start=glava15 или ?start=ruka — сразу выдаём главу №15
+        if source in ["glava15", "ruka"]:
+            log_event(chat_id, "CHAPTER_15", source)
+            safe_send_doc(
+                chat_id,
+                HTML_CHAPTER_15_PATH,
+                "🌿 Глава № 15 «Как убрать ночное онемение кистей и освободить зажатый нерв в запястье».",
+                "⚠️ Файл glava15.html не найден!",
+            )
 
-        user_link = (
-            f"@{username}"
-            if username
-            else f"ID: {chat_id}"
-        )
+        user_link = f"@{username}" if username else f"ID: {chat_id}"
 
         notification = (
             "🔔 <b>Новый гость в избушке!</b>\n"
@@ -722,10 +625,7 @@ def send_welcome(message):
         )
 
     except Exception as e:
-
-        print(
-            f"Ошибка при старте: {e}"
-        )
+        print(f"Ошибка при старте: {e}")
 
 
 # ============================================================
@@ -738,9 +638,7 @@ def send_welcome(message):
         and m.reply_to_message is not None
 )
 def handle_admin_reply(message):
-
     try:
-
         reply_text = (
             message.reply_to_message.text
             or message.reply_to_message.caption
@@ -750,27 +648,14 @@ def handle_admin_reply(message):
         target_chat_id = None
 
         for line in reply_text.split("\n"):
-
             if "🆔 ID:" in line:
-
-                target_chat_id = (
-                    line.split("🆔 ID:")[1]
-                    .strip()
-                )
-
+                target_chat_id = line.split("🆔 ID:")[1].strip()
                 break
-
             elif "🆔 Чат ID:" in line:
-
-                target_chat_id = (
-                    line.split("🆔 Чат ID:")[1]
-                    .strip()
-                )
-
+                target_chat_id = line.split("🆔 Чат ID:")[1].strip()
                 break
 
         if target_chat_id:
-
             bot.copy_message(
                 chat_id=target_chat_id,
                 from_chat_id=MY_ID,
@@ -779,20 +664,15 @@ def handle_admin_reply(message):
 
             bot.send_message(
                 MY_ID,
-                "✅ Ответ успешно отправлен "
-                "пользователю от имени Агафьи!",
+                "✅ Ответ успешно отправлен пользователю от имени Агафьи!",
             )
-
         else:
-
             bot.send_message(
                 MY_ID,
-                "⚠️ Не удалось определить ID. "
-                "Отвечайте на карточку с вопросом.",
+                "⚠️ Не удалось определить ID. Отвечайте на карточку с вопросом.",
             )
 
     except Exception as e:
-
         bot.send_message(
             MY_ID,
             f"❌ Ошибка отправки: {e}",
@@ -807,21 +687,13 @@ def handle_admin_reply(message):
     func=lambda m: m.chat.id != MY_ID
 )
 def forward_user_question(message):
-
     chat_id = message.chat.id
 
     username = message.from_user.username
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name or ""
 
-    user_link = (
-        f"@{username}"
-        if username
-        else "без юзернейма"
-    )
-
-    # Добавляем человека в БД,
-    # если он почему-то написал без /start
+    user_link = f"@{username}" if username else "без юзернейма"
 
     add_user(
         chat_id,
@@ -832,15 +704,12 @@ def forward_user_question(message):
 
     info_card = (
         "💬 <b>Новое сообщение от гостя!</b>\n"
-        f"👤 Имя: {first_name} {last_name} "
-        f"({user_link})\n"
+        f"👤 Имя: {first_name} {last_name} ({user_link})\n"
         f"🆔 ID: {chat_id}\n\n"
-        "<i>Нажмите «Ответить» (Reply) "
-        "на это сообщение, чтобы написать человеку!</i>"
+        "<i>Нажмите «Ответить» (Reply) на это сообщение, чтобы написать человеку!</i>"
     )
 
     try:
-
         bot.send_message(
             MY_ID,
             info_card,
@@ -860,10 +729,7 @@ def forward_user_question(message):
         )
 
     except Exception as e:
-
-        print(
-            f"Ошибка пересылки: {e}"
-        )
+        print(f"Ошибка пересылки: {e}")
 
 
 # ============================================================
@@ -874,19 +740,11 @@ def forward_user_question(message):
     func=lambda call: True
 )
 def handle_callbacks(call):
-
     chat_id = call.message.chat.id
     data = call.data
 
     try:
-
-        bot.answer_callback_query(
-            call.id
-        )
-
-        # ----------------------------------------------------
-        # ВОРОНКА "ЧИСЛО" ИЗ INSTAGRAM / MANYCHAT
-        # ----------------------------------------------------
+        bot.answer_callback_query(call.id)
 
         if data == "chislo_relationships":
             log_event(chat_id, "CHISLO_RELATIONSHIPS", "chislo")
@@ -970,17 +828,11 @@ def handle_callbacks(call):
 
         elif data == "open_main_hut":
             log_event(chat_id, "OPEN_MAIN_HUT", "chislo")
-            # Повторно используем обычный /start без deep-link.
             message = call.message
             message.text = "/start"
             send_welcome(message)
 
-        # ----------------------------------------------------
-        # ОБЕРЕГ
-        # ----------------------------------------------------
-
         elif data == "get_obereg":
-
             obereg_text = (
                 'Ниже прикрепила ваш Звуковой Оберег '
                 '"Сумерки в избушке". Это 7 минут '
@@ -993,55 +845,29 @@ def handle_callbacks(call):
                 "Спасайтесь покоем. ✨"
             )
 
-            bot.send_message(
-                chat_id,
-                obereg_text,
-            )
+            bot.send_message(chat_id, obereg_text)
 
-            if os.path.exists(
-                AUDIO_PATH
-            ):
-
-                with open(
-                    AUDIO_PATH,
-                    "rb",
-                ) as audio:
-
+            if os.path.exists(AUDIO_PATH):
+                with open(AUDIO_PATH, "rb") as audio:
                     bot.send_audio(
                         chat_id,
                         audio,
-                        caption=(
-                            "✨ Твой Звуковой Оберег "
-                            "от Агафьи"
-                        ),
+                        caption="✨ Твой Звуковой Оберег от Агафьи",
                         title="Сумерки в избушке",
                         performer="Агафья Травница",
                     )
-
             else:
-
-                bot.send_message(
-                    chat_id,
-                    "⚠️ Ой, звуковой файл "
-                    "obereg.mp3 не найден!",
-                )
-
-        # ----------------------------------------------------
-        # ГЛАВЫ
-        # ----------------------------------------------------
+                bot.send_message(chat_id, "⚠️ Ой, звуковой файл obereg.mp3 не найден!")
 
         elif data == "get_chapter_1":
-
             safe_send_doc(
                 chat_id,
                 PDF_PATH,
-                "📖 Первая глава от Агафьи. "
-                "Приятного чтения!",
+                "📖 Первая глава от Агафьи. Приятного чтения!",
                 "⚠️ Файл glava1.pdf не найден!",
             )
 
         elif data == "get_chapter_2":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_2_PATH,
@@ -1050,7 +876,6 @@ def handle_callbacks(call):
             )
 
         elif data == "get_chapter_3":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_3_PATH,
@@ -1059,7 +884,6 @@ def handle_callbacks(call):
             )
 
         elif data == "get_chapter_4":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_4_PATH,
@@ -1068,185 +892,120 @@ def handle_callbacks(call):
             )
 
         elif data == "get_chapter_5":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_5_PATH,
-                "📖 Пятая глава «Домашней тетради» "
-                "— про опасные вещи и очищение дома.",
+                "📖 Пятая глава «Домашней тетради» — про опасные вещи и очищение дома.",
                 "⚠️ Файл glava5.pdf не найден!",
             )
 
         elif data == "get_chapter_6_1":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_6_1_PATH,
-                "🌿 Глава № 6/1 "
-                "«Свод таёжных правил: "
-                "Отёк и мешки под глазами».",
+                "🌿 Глава № 6/1 «Свод таёжных правил: Отёк и мешки под глазами».",
                 "⚠️ Файл glava6_1.pdf не найден!",
             )
 
         elif data == "get_chapter_6_2":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_6_2_PATH,
-                "🌿 Глава № 6/2 "
-                "«Свод таёжных правил: "
-                "Вздутый живот — не жир».",
+                "🌿 Глава № 6/2 «Свод таёжных правил: Вздутый живот — не жир».",
                 "⚠️ Файл glava6_2.pdf не найден!",
             )
 
         elif data == "get_chapter_6_3":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_6_3_PATH,
-                "🌿 Глава № 6/3 "
-                "«Свод таёжных правил: "
-                "Ломота в суставах и чистка печени».",
+                "🌿 Глава № 6/3 «Свод таёжных правил: Ломота в суставах и чистка печени».",
                 "⚠️ Файл glava6_3.pdf не найден!",
             )
 
         elif data == "get_chapter_6_4":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_6_4_PATH,
-                "🌿 Глава № 6/4 "
-                "«Свод таёжных правил: "
-                "Разгон лимфы и лёгкость тела».",
+                "🌿 Глава № 6/4 «Свод таёжных правил: Разгон лимфы и лёгкость тела».",
                 "⚠️ Файл glava6_4.pdf не найден!",
             )
 
         elif data == "get_chapter_7":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_7_PATH,
-                "🌿 Глава № 7 "
-                "«Таёжный щит для позвоночника».",
+                "🌿 Глава № 7 «Таёжный щит для позвоночника».",
                 "⚠️ Файл glava7.pdf не найден!",
             )
 
         elif data == "get_chapter_8":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_8_PATH,
-                "🌸 Глава № 8 "
-                "«Женский таёжный покров: "
-                "Как потушить приливы и жар».",
+                "🌸 Глава № 8 «Женский таёжный покров: Как потушить приливы и жар».",
                 "⚠️ Файл glava8.pdf не найден!",
             )
 
         elif data == "get_chapter_9":
-
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_9_PATH,
-                "🌿 Глава № 9 "
-                "«Следы солнца: старый рецепт "
-                "с корнем солодки "
-                "от тёмных пятнышек».",
+                "🌿 Глава № 9 «Следы солнца: старый рецепт с корнем солодки от тёмных пятнышек».",
                 "⚠️ Файл glava9.pdf не найден!",
             )
 
-        # ----------------------------------------------------
-        # НОВАЯ ГЛАВА №10
-        # ----------------------------------------------------
-
         elif data == "get_chapter_10":
-
-            # Записываем, что человек реально
-            # нажал и запросил главу №10
-
-            log_event(
-                chat_id,
-                "CHAPTER_10",
-                "button",
-            )
-
+            log_event(chat_id, "CHAPTER_10", "button")
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_10_PATH,
-                "🌿 Глава № 10 "
-                "«Когда живот встал: "
-                "простой способ с псиллиумом "
-                "для мягкой работы кишечника».",
+                "🌿 Глава № 10 «Когда живот встал: простой способ с псиллиумом для мягкой работы кишечника».",
                 "⚠️ Файл glava10.pdf не найден!",
             )
 
-        # ----------------------------------------------------
-        # НОВАЯ ГЛАВА №11
-        # ----------------------------------------------------
-
         elif data == "get_chapter_11":
-
-            log_event(
-                chat_id,
-                "CHAPTER_11",
-                "button",
-            )
-
+            log_event(chat_id, "CHAPTER_11", "button")
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_11_PATH,
-                "🌸 Глава № 11 "
-                "«Женская чистота: "
-                "5 вещей, которые лучше не делать».",
+                "🌸 Глава № 11 «Женская чистота: 5 вещей, которые лучше не делать».",
                 "⚠️ Файл glava11.pdf не найден!",
             )
 
-        # ----------------------------------------------------
-        # НОВАЯ ГЛАВА №12
-        # ----------------------------------------------------
-
         elif data == "get_chapter_12":
-
-            log_event(
-                chat_id,
-                "CHAPTER_12",
-                "button",
-            )
-
+            log_event(chat_id, "CHAPTER_12", "button")
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_12_PATH,
-                "🌙 Глава № 12 "
-                "«Ночной жар: что проверить перед сном, "
-                "если приливы будят ночью».",
+                "🌙 Глава № 12 «Ночной жар: что проверить перед сном, если приливы будят ночью».",
                 "⚠️ Файл glava12.pdf не найден!",
             )
 
-        # ----------------------------------------------------
-        # НОВАЯ ГЛАВА №14
-        # ----------------------------------------------------
-
         elif data == "get_chapter_14":
-
-            log_event(
-                chat_id,
-                "CHAPTER_14",
-                "button",
-            )
-
+            log_event(chat_id, "CHAPTER_14", "button")
             safe_send_doc(
                 chat_id,
                 PDF_CHAPTER_14_PATH,
-                "🌿 Глава № 14 "
-                "«Утро начинается вечером: что делать, если лицо после сна "
-                "будто налилось водой».",
+                "🌿 Глава № 14 «Утро начинается вечером: что делать, если лицо после сна будто налилось водой».",
                 "⚠️ Файл glava14.pdf не найден!",
             )
 
-    except Exception as e:
+        # ----------------------------------------------------
+        # НОВАЯ ГЛАВА №15
+        # ----------------------------------------------------
 
-        print(
-            f"Ошибка колбэка: {e}"
-        )
+        elif data == "get_chapter_15":
+            log_event(chat_id, "CHAPTER_15", "button")
+            safe_send_doc(
+                chat_id,
+                HTML_CHAPTER_15_PATH,
+                "🌿 Глава № 15 «Как убрать ночное онемение кистей и освободить зажатый нерв в запястье».",
+                "⚠️ Файл glava15.html не найден!",
+            )
+
+    except Exception as e:
+        print(f"Ошибка колбэка: {e}")
 
 
 # ============================================================
@@ -1254,42 +1013,19 @@ def handle_callbacks(call):
 # ============================================================
 
 def run_dummy_server():
-
-    class Handler(
-        http.server.SimpleHTTPRequestHandler
-    ):
-
+    class Handler(http.server.SimpleHTTPRequestHandler):
         def do_GET(self):
-
             self.send_response(200)
             self.end_headers()
+            self.wfile.write(b"OK")
 
-            self.wfile.write(
-                b"OK"
-            )
-
-    port = int(
-        os.environ.get(
-            "PORT",
-            10000,
-        )
-    )
+    port = int(os.environ.get("PORT", 10000))
 
     try:
-
-        with socketserver.TCPServer(
-            ("", port),
-            Handler,
-        ) as httpd:
-
+        with socketserver.TCPServer(("", port), Handler) as httpd:
             httpd.serve_forever()
-
     except Exception as server_error:
-
-        print(
-            f"Ошибка сервера: "
-            f"{server_error}"
-        )
+        print(f"Ошибка сервера: {server_error}")
 
 
 # ============================================================
@@ -1297,25 +1033,17 @@ def run_dummy_server():
 # ============================================================
 
 if __name__ == "__main__":
-
     threading.Thread(
         target=run_dummy_server,
         daemon=True,
     ).start()
 
-    print(
-        "Агафья запущена..."
-    )
+    print("Агафья запущена...")
 
     try:
-
         bot.infinity_polling(
             timeout=10,
             long_polling_timeout=5,
         )
-
     except Exception as e:
-
-        print(
-            f"Сбой сети: {e}"
-        )
+        print(f"Сбой сети: {e}")
