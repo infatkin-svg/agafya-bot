@@ -49,6 +49,7 @@ PDF_CHAPTER_14_PATH = os.path.join(BASE_DIR, "glava14.pdf")
 
 # НОВАЯ ГЛАВА №15 (PDF)
 PDF_CHAPTER_15_PATH = os.path.join(BASE_DIR, "glava15.pdf")
+PDF_CHAPTER_16_PATH = os.path.join(BASE_DIR, "glava16.pdf")
 
 
 # ============================================================
@@ -566,6 +567,10 @@ def send_welcome(message):
             text="🌿 Глава 15: Онемение рук и зажим нерва в запястье (PDF)",
             callback_data="get_chapter_15",
         ),
+        types.InlineKeyboardButton(
+            text="🌿 Глава 16: Касторка — что знала бабушка, а что придумал интернет (PDF)",
+            callback_data="get_chapter_16",
+        ),
     )
 
     try:
@@ -1002,6 +1007,15 @@ def handle_callbacks(call):
                 PDF_CHAPTER_15_PATH,
                 "🌿 Глава № 15 «Как убрать ночное онемение кистей и освободить зажатый нерв в запястье».",
                 "⚠️ Файл glava15.pdf не найден!",
+            )
+
+        elif data == "get_chapter_16":
+            log_event(chat_id, "CHAPTER_16", "button")
+            safe_send_doc(
+                chat_id,
+                PDF_CHAPTER_16_PATH,
+                "🌿 Глава № 16 «Касторка: что знала ещё моя бабушка, а что придумал интернет».",
+                "⚠️ Файл glava16.pdf не найден!",
             )
 
     except Exception as e:
